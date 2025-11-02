@@ -1,16 +1,14 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
+import { AuthProvider } from "@/contexts/auth-context"
 import "./globals.css"
-import { AuthProvider } from "@/components/auth-provider"
-
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AuditOrbit - منصة التدقيق الداخلي",
-  description: "منصة التدقيق الداخلي الذكية",
+  title: "AuditOrbit - نظام إدارة التدقيق",
+  description: "نظام متكامل لإدارة عمليات التدقيق الداخلي",
   generator: "v0.app",
 }
 
@@ -21,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={`font-sans antialiased`}>
+      <body className={`font-sans antialiased ${GeistSans.variable} ${GeistMono.variable}`}>
         <AuthProvider>{children}</AuthProvider>
         <Analytics />
       </body>

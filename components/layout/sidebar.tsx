@@ -1,102 +1,124 @@
 "use client"
 
-import type React from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import {
+  LayoutDashboard,
+  FileText,
+  CheckSquare,
+  AlertCircle,
+  TrendingUp,
+  Calendar,
+  FolderOpen,
+  Settings,
+  Users,
+  Shield,
+  ChevronLeft,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, FileText, Target, Users, Settings, ChevronRight, ChevronLeft } from "lucide-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAuth } from "@/contexts/auth-context"
 
 interface SidebarProps {
-  collapsed: boolean
-  onToggle: () => void
-  userRole: "admin" | "manager" | "auditor"
+  isOpen: boolean
+  onClose: () => void
 }
 
-interface NavItem {
-  path: string
-  title: string
-  icon: React.ReactNode
-}
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const pathname = usePathname()
+  const { user } = useAuth()
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
-const getNavigationByRole = (role: string): NavItem[] => {
-  const baseNav: NavItem[] = [
+  const navigation = [
     {
-      path: "/dashboard",
       title: "لوحة التحكم",
-      icon: <LayoutDashboard className="h-5 w-5" />,
+      items: [
+        { name: "الرئيسية", href: "/dashboard", icon: LayoutDashboard },
+        { name: "التقارير", href: "/dashboard/reports", icon: FileText },
+      ],
     },
     {
-      path: "/reports",
-      title: "التقارير الموحدة",
-      icon: <FileText className="h-5 w-5" />,
+      title: "التدقيق",
+      items: [
+        { name: "الخطط السنوية", href: "/dashboard/annual-plans", icon: Calendar },
+        { name: "المهام", href: "/dashboard/engagements", icon: FolderOpen },
+        { name: "قوائم المراجعة", href: "/dashboard/checklists", icon: CheckSquare },
+        { name: "النتائج", href: "/dashboard/findings", icon: AlertCircle },
+        { name: "الأدلة", href: "/dashboard/evidence", icon: FileText },
+        { name: "المتابعة", href: "/dashboard/followup", icon: TrendingUp },
+      ],
     },
     {
-      path: "/engagements",
-      title: "المشاريع",
-      icon: <Target className="h-5 w-5" />,
+      title: "الإعدادات",
+      items: [
+        { name: "الإعدادات العامة", href: "/dashboard/settings", icon: Settings },
+        ...(user?.role === "admin"
+          ? [
+              { name: "المستخدمون", href: "/dashboard/users", icon: Users },
+              { name: "الصلاحيات", href: "/dashboard/permissions", icon: Shield },
+            ]
+          : []),
+      ],
     },
   ]
 
-  if (role === "admin") {
-    return [
-      ...baseNav,
-      {
-        path: "/users",
-        title: "المستخدمين",
-        icon: <Users className="h-5 w-5" />,
-      },
-      {
-        path: "/settings",
-        title: "الإعدادات",
-        icon: <Settings className="h-5 w-5" />,
-      },
-    ]
-  }
-
-  return baseNav
-}
-
-export function Sidebar({ collapsed, onToggle, userRole }: SidebarProps) {
-  const pathname = usePathname()
-  const navigation = getNavigationByRole(userRole)
-
   return (
-    <aside
-      className={`fixed right-0 top-0 z-50 flex h-screen flex-col border-l border-border bg-card transition-all duration-300 ${
-        collapsed ? "w-20" : "w-[280px]"
-      }`}
-    >
-      {/* Header */}
-      <div className={`flex items-center gap-3 border-b border-border p-6 ${collapsed ? "justify-center" : ""}`}>
-        <div className="text-xl font-bold text-primary">AuditOrbit</div>
-        {!collapsed && <span className="text-sm text-muted-foreground">نظام التدقيق الموحد</span>}
-      </div>
+    <>
+      {/* Mobile overlay */}
+      {isOpen && <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden" onClick={onClose} />}
 
-      {/* Navigation */}
-      <nav className="flex-1 py-4">
-        {navigation.map((item) => {
-          const isActive = pathname === item.path
-          return (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={`flex items-center gap-3 px-6 py-3 transition-all hover:bg-primary/10 hover:text-primary ${
-                isActive ? "border-r-3 border-primary bg-primary/10 text-primary" : "text-muted-foreground"
-              } ${collapsed ? "justify-center px-4 py-4" : ""}`}
-            >
-              {item.icon}
-              {!collapsed && <span className="text-sm">{item.title}</span>}
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed right-0 top-0 z-50 h-screen border-l bg-background transition-all duration-300 md:sticky",
+          isCollapsed ? "w-16" : "w-64",
+          isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0",
+        )}
+      >
+        <div className="flex h-16 items-center justify-between border-b px-4">
+          {!isCollapsed && (
+            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
+              <Shield className="h-6 w-6 text-primary" />
+              <span>AuditOrbit</span>
             </Link>
-          )
-        })}
-      </nav>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex">
+            <ChevronLeft className={cn("h-4 w-4 transition-transform", isCollapsed && "rotate-180")} />
+          </Button>
+        </div>
 
-      {/* Toggle Button */}
-      <div className="p-4">
-        <Button variant="outline" size="sm" className="w-full bg-transparent" onClick={onToggle}>
-          {collapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </Button>
-      </div>
-    </aside>
+        <ScrollArea className="h-[calc(100vh-4rem)] px-3 py-4">
+          <nav className="space-y-6">
+            {navigation.map((section) => (
+              <div key={section.title}>
+                {!isCollapsed && (
+                  <h3 className="mb-2 px-3 text-xs font-semibold text-muted-foreground">{section.title}</h3>
+                )}
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon
+                    const isActive = pathname === item.href
+                    return (
+                      <Link key={item.href} href={item.href}>
+                        <Button
+                          variant={isActive ? "secondary" : "ghost"}
+                          className={cn("w-full justify-start gap-3", isCollapsed && "justify-center px-2")}
+                          onClick={() => onClose()}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          {!isCollapsed && <span>{item.name}</span>}
+                        </Button>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+        </ScrollArea>
+      </aside>
+    </>
   )
 }
