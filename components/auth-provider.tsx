@@ -37,6 +37,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem("access_token")
         localStorage.removeItem("refresh_token")
       }
+    } else {
+      const mockUser: User = {
+        id: 1,
+        email: "admin@auditOrbit.com",
+        full_name: "مدير النظام",
+        role: "admin",
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+
+      setUser(mockUser)
     }
 
     setIsLoading(false)
@@ -54,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("access_token")
       localStorage.removeItem("refresh_token")
       setUser(null)
-      router.push("/login")
+      router.push("/dashboard")
     }
   }
 
