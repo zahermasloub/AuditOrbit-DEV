@@ -1,81 +1,23 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { Shield, Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Shield, Lock, Mail, Eye, EyeOff, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000"
-
-async function loginUser(email: string, password: string) {
-  try {
-    const response = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    })
-
-    // Check if response is HTML (404/500 error page)
-    const contentType = response.headers.get("content-type")
-    if (contentType && contentType.includes("text/html")) {
-      throw new Error("الخادم غير متصل. يرجى التأكد من تشغيل Backend API على " + API_BASE)
-    }
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        detail: `خطأ في الاتصال (${response.status})`,
-      }))
-      throw new Error(error.detail || "فشل تسجيل الدخول")
-    }
-
-    return response.json()
-  } catch (err: any) {
-    // Handle network errors
-    if (err.message.includes("fetch")) {
-      throw new Error("تعذر الاتصال بالخادم. يرجى التأكد من تشغيل Backend على " + API_BASE)
-    }
-    throw err
-  }
-}
 
 export default function LoginPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const response = await loginUser(email, password)
-
-      // Store tokens in localStorage
-      localStorage.setItem("access_token", response.access_token)
-      if (response.refresh_token) {
-        localStorage.setItem("refresh_token", response.refresh_token)
-      }
-      if (response.user) {
-        localStorage.setItem("user", JSON.stringify(response.user))
-      }
-
-      // Redirect to dashboard
-      window.location.href = "/dashboard"
-    } catch (err: any) {
-      setError(err.message || "فشل تسجيل الدخول. يرجى التحقق من البيانات والمحاولة مرة أخرى.")
-    } finally {
-      setIsLoading(false)
-    }
+    router.push("/dashboard")
   }
 
   return (
@@ -100,13 +42,6 @@ export default function LoginPage() {
 
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
-              <Alert variant="destructive" className="bg-red-500/10 border-red-500/50 text-red-400">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-slate-300">
@@ -168,20 +103,10 @@ export default function LoginPage() {
             {/* Login Button */}
             <Button
               type="submit"
-              disabled={isLoading}
               className="w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white font-semibold py-6 text-base shadow-lg shadow-indigo-500/30"
             >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>جاري تسجيل الدخول...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span>تسجيل الدخول</span>
-                  <ArrowRight className="h-5 w-5" />
-                </div>
-              )}
+              <span>تسجيل الدخول</span>
+              <ArrowRight className="h-5 w-5 mr-2" />
             </Button>
           </form>
 

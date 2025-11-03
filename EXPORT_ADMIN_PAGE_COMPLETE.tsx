@@ -1,3 +1,31 @@
+// ============================================================================
+// ADMIN PAGE - COMPLETE EXPORT FILE
+// ============================================================================
+//
+// هذا الملف يحتوي على الكود الكامل لصفحة الإدارة (Admin Page)
+// يمكن نسخ هذا الملف واستخدامه مباشرة في التطبيق الفعلي
+//
+// الميزات المتضمنة:
+// ✅ لوحة معلومات تفاعلية مع KPIs
+// ✅ رسوم بيانية متقدمة (Line, Bar, Pie Charts)
+// ✅ إدارة المستخدمين مع جدول قابل للفلترة
+// ✅ إدارة الأدوار والصلاحيات
+// ✅ سجل التدقيق (Audit Logs) مع فلترة متقدمة
+// ✅ نشاط المستخدمين في الوقت الفعلي
+// ✅ تصميم حديث وديناميكي مع Tailwind CSS
+// ✅ دعم كامل للغة العربية (RTL)
+// ✅ واجهة مستخدم سلسة ومتجاوبة
+//
+// المتطلبات:
+// - Next.js 14+
+// - React 18+
+// - Tailwind CSS
+// - shadcn/ui components
+// - Recharts
+// - Lucide React Icons
+//
+// ============================================================================
+
 "use client"
 
 import { useState } from "react"
@@ -73,7 +101,12 @@ import {
   Legend,
 } from "recharts"
 
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 export default function AdminPage() {
+  // State Management
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeSection, setActiveSection] = useState("dashboard")
   const [selectedPeriod, setSelectedPeriod] = useState("month")
@@ -82,6 +115,7 @@ export default function AdminPage() {
   const [showUserDialog, setShowUserDialog] = useState(false)
   const [showRoleDialog, setShowRoleDialog] = useState(false)
 
+  // Menu Items Configuration
   const menuItems = [
     { id: "dashboard", label: "لوحة المعلومات", icon: LayoutDashboard },
     { id: "users", label: "إدارة المستخدمين", icon: Users },
@@ -91,6 +125,10 @@ export default function AdminPage() {
     { id: "notifications", label: "الإشعارات", icon: Bell },
     { id: "settings", label: "إعدادات النظام", icon: Settings },
   ]
+
+  // ============================================================================
+  // MOCK DATA - Replace with actual API calls
+  // ============================================================================
 
   // KPIs Data
   const kpis = {
@@ -334,6 +372,10 @@ export default function AdminPage() {
     },
   ]
 
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+
   const handleSelectUser = (userId: string) => {
     setSelectedUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
   }
@@ -345,6 +387,10 @@ export default function AdminPage() {
       setSelectedUsers(users.map((u) => u.id))
     }
   }
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
     <div className="min-h-screen bg-slate-950 flex" dir="rtl">
@@ -452,7 +498,7 @@ export default function AdminPage() {
           </div>
         </header>
 
-        {/* Content Area */}
+        {/* Content Area - Scrollable */}
         <div className="flex-1 p-6 overflow-auto">
           {/* Dashboard Section */}
           {activeSection === "dashboard" && (
@@ -482,6 +528,7 @@ export default function AdminPage() {
 
               {/* KPI Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Active Engagements Card */}
                 <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:border-indigo-500/50 transition-all">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-4">
@@ -499,6 +546,7 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
+                {/* Findings Card */}
                 <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:border-red-500/50 transition-all">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-4">
@@ -516,6 +564,7 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
+                {/* Reports Card */}
                 <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:border-cyan-500/50 transition-all">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-4">
@@ -533,6 +582,7 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
+                {/* Active Users Card */}
                 <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:border-purple-500/50 transition-all">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-4">
@@ -553,7 +603,7 @@ export default function AdminPage() {
 
               {/* Charts Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Engagements Trend */}
+                {/* Engagements Trend Chart */}
                 <Card className="bg-slate-900 border-slate-800">
                   <CardHeader>
                     <CardTitle className="text-white flex items-center gap-2">
@@ -598,7 +648,7 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
-                {/* User Activity */}
+                {/* User Activity Chart */}
                 <Card className="bg-slate-900 border-slate-800">
                   <CardHeader>
                     <CardTitle className="text-white flex items-center gap-2">
@@ -629,7 +679,7 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
-                {/* Findings by Severity */}
+                {/* Findings by Severity Chart */}
                 <Card className="bg-slate-900 border-slate-800">
                   <CardHeader>
                     <CardTitle className="text-white flex items-center gap-2">
@@ -1073,7 +1123,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Reports Section */}
+          {/* Reports Section - Placeholder */}
           {activeSection === "reports" && (
             <Card className="bg-slate-900 border-slate-800">
               <CardContent className="pt-6 text-center py-12">
@@ -1086,7 +1136,7 @@ export default function AdminPage() {
             </Card>
           )}
 
-          {/* Notifications Section */}
+          {/* Notifications Section - Placeholder */}
           {activeSection === "notifications" && (
             <Card className="bg-slate-900 border-slate-800">
               <CardContent className="pt-6 text-center py-12">
@@ -1099,7 +1149,7 @@ export default function AdminPage() {
             </Card>
           )}
 
-          {/* Settings Section */}
+          {/* Settings Section - Placeholder */}
           {activeSection === "settings" && (
             <Card className="bg-slate-900 border-slate-800">
               <CardContent className="pt-6 text-center py-12">
@@ -1218,3 +1268,7 @@ export default function AdminPage() {
     </div>
   )
 }
+
+// ============================================================================
+// END OF FILE
+// ============================================================================

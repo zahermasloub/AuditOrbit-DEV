@@ -1,8 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAuth } from "@/components/auth-provider"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import {
   LayoutDashboard,
   FileText,
@@ -23,6 +21,7 @@ import {
   Calendar,
   Bell,
   MessageSquare,
+  Activity,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -50,21 +49,8 @@ import { ReportsSection } from "@/components/reports-section"
 import { FollowUpSection } from "@/components/followup-section"
 
 export default function DashboardPage() {
-  const { user, isLoading, logout } = useAuth()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login")
-    }
-  }, [user, isLoading, router])
-
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeSection, setActiveSection] = useState("dashboard")
-
-  const handleLogout = () => {
-    logout()
-  }
 
   const menuItems = [
     { id: "dashboard", label: "لوحة المعلومات", icon: LayoutDashboard },
@@ -175,23 +161,6 @@ export default function DashboardPage() {
     { department: "العمليات", score: 76 },
   ]
 
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">جاري التحميل...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Don't render dashboard if not authenticated
-  if (!user) {
-    return null
-  }
-
   return (
     <div className="min-h-screen bg-slate-950 flex" dir="rtl">
       {/* Sidebar */}
@@ -235,20 +204,17 @@ export default function DashboardPage() {
         <div className="p-4 border-t border-slate-800">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-              {user.full_name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+              A
             </div>
             <div className="flex-1">
-              <p className="text-white font-medium text-sm">{user.full_name || user.email}</p>
-              <p className="text-slate-400 text-xs">
-                {user.role === "admin" ? "مدير النظام" : user.role === "ia_manager" ? "مدير التدقيق" : "مدقق"}
-              </p>
+              <p className="text-white font-medium text-sm">مدير التدقيق</p>
+              <p className="text-slate-400 text-xs">admin@audit.com</p>
             </div>
           </div>
           <Button
             variant="outline"
             className="w-full border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white bg-transparent"
             size="sm"
-            onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 ml-2" />
             تسجيل الخروج
@@ -287,6 +253,13 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <a href="/ops" target="_blank" rel="noopener noreferrer">
+                <Button className="bg-gradient-to-l from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg shadow-purple-500/30 border-0">
+                  <Activity className="h-4 w-4 ml-2" />
+                  بوابة العمليات
+                </Button>
+              </a>
+
               <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />

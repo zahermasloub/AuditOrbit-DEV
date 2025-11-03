@@ -450,6 +450,7 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
+            {/* Annual Plan Dropdown */}
             <div className="space-y-2">
               <Label htmlFor="annualPlan" className="text-slate-300">
                 الخطة السنوية <span className="text-cyan-400">*</span>
@@ -679,6 +680,14 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
                     </CardContent>
                   </Card>
                 </div>
+                {selectedEngagement.annualPlanTitle && (
+                  <Card className="bg-slate-800 border-slate-700">
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-slate-400 mb-1">الخطة السنوية</p>
+                      <p className="text-lg font-semibold text-cyan-300">{selectedEngagement.annualPlanTitle}</p>
+                    </CardContent>
+                  </Card>
+                )}
                 <div className="space-y-2">
                   <p className="text-sm text-slate-400">التقدم</p>
                   <Progress value={selectedEngagement.progress} className="h-3" />
