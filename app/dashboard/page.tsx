@@ -278,8 +278,28 @@ export default function DashboardPage() {
                   <Card key={idx} className="bg-slate-900 border-slate-800">
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between mb-4">
-                        <div className={`p-3 bg-${stat.color}-500/10 rounded-lg border border-${stat.color}-500/20`}>
-                          <stat.icon className={`h-6 w-6 text-${stat.color}-400`} />
+                        <div
+                          className={`p-3 rounded-lg border ${
+                            stat.color === "indigo"
+                              ? "bg-indigo-500/10 border-indigo-500/20"
+                              : stat.color === "orange"
+                                ? "bg-orange-500/10 border-orange-500/20"
+                                : stat.color === "cyan"
+                                  ? "bg-cyan-500/10 border-cyan-500/20"
+                                  : "bg-emerald-500/10 border-emerald-500/20"
+                          }`}
+                        >
+                          <stat.icon
+                            className={`h-6 w-6 ${
+                              stat.color === "indigo"
+                                ? "text-indigo-400"
+                                : stat.color === "orange"
+                                  ? "text-orange-400"
+                                  : stat.color === "cyan"
+                                    ? "text-cyan-400"
+                                    : "text-emerald-400"
+                            }`}
+                          />
                         </div>
                         <Badge
                           variant="outline"
@@ -319,7 +339,7 @@ export default function DashboardPage() {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : "0"}%`}
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="value"
@@ -408,9 +428,9 @@ export default function DashboardPage() {
                         <div key={idx}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-slate-300">{dept.department}</span>
-                            <span className="text-sm font-semibold text-white">{dept.score}</span>
+                            <span className="text-sm font-semibold text-white">{dept.score || 0}</span>
                           </div>
-                          <Progress value={dept.score} className="h-2" />
+                          <Progress value={dept.score || 0} className="h-2" />
                         </div>
                       ))}
                     </div>
@@ -459,9 +479,9 @@ export default function DashboardPage() {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-slate-400">التقدم</span>
-                            <span className="text-white font-medium">{engagement.progress}%</span>
+                            <span className="text-white font-medium">{engagement.progress || 0}%</span>
                           </div>
-                          <Progress value={engagement.progress} className="h-2" />
+                          <Progress value={engagement.progress || 0} className="h-2" />
                         </div>
 
                         <div className="flex items-center justify-between mt-3 text-sm">
