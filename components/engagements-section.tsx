@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   Clock,
   Building2,
+  AlertTriangle,
+  User,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -25,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox" // Added
 
 interface Engagement {
   id: number
@@ -52,6 +55,8 @@ interface AnnualPlan {
   year: string
   title: string
   status: string
+  vacationStartDate?: string // Added
+  vacationEndDate?: string // Added
 }
 
 interface EngagementsSectionProps {
@@ -130,6 +135,7 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
     description: "",
     department: "",
     priority: "medium",
+    status: "planning",
     startDate: "",
     endDate: "",
     estimatedHours: "",
@@ -137,9 +143,56 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
     scope: "",
     criteria: "",
     annualPlanId: "",
+    responsibleAuditor: "",
+    teamMembers: [] as string[],
   })
 
+  const availableAuditors = [
+    "أحمد محمد",
+    "سارة علي",
+    "محمد خالد",
+    "فاطمة حسن",
+    "عمر يوسف",
+    "نورة أحمد",
+    "خالد عبدالله",
+    "ليلى محمود",
+  ]
+
+  const isDateInVacationPeriod = (date: string, planId: string) => {
+    const plan = annualPlans.find((p) => p.id === Number.parseInt(planId))
+    if (!plan || !plan.vacationStartDate || !plan.vacationEndDate) return false
+
+    const checkDate = new Date(date)
+    const vacationStart = new Date(plan.vacationStartDate)
+    const vacationEnd = new Date(plan.vacationEndDate)
+
+    return checkDate >= vacationStart && checkDate <= vacationEnd
+  }
+
+  const [vacationWarning, setVacationWarning] = useState<string | null>(null)
+
+  const handleDateChange = (field: "startDate" | "endDate", value: string) => {
+    setFormData({ ...formData, [field]: value })
+
+    if (formData.annualPlanId && value) {
+      if (isDateInVacationPeriod(value, formData.annualPlanId)) {
+        setVacationWarning(`التاريخ المحدد يقع ضمن فترة الإجازة السنوية. يرجى اختيار تاريخ آخر.`)
+      } else {
+        setVacationWarning(null)
+      }
+    }
+  }
+
   const handleCreateEngagement = () => {
+    if (
+      formData.annualPlanId &&
+      (isDateInVacationPeriod(formData.startDate, formData.annualPlanId) ||
+        isDateInVacationPeriod(formData.endDate, formData.annualPlanId))
+    ) {
+      alert("لا يمكن جدولة مهمة خلال فترة الإجازة السنوية")
+      return
+    }
+
     const selectedPlan = annualPlans.find((plan) => plan.id === Number.parseInt(formData.annualPlanId))
 
     const newEngagement: Engagement = {
@@ -147,12 +200,14 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
       title: formData.title,
       description: formData.description,
       department: formData.department,
-      status: "planning",
+      status: formData.status as "planning" | "fieldwork" | "reporting" | "follow-up" | "completed",
       priority: formData.priority as "critical" | "high" | "medium" | "low",
       progress: 0,
       startDate: formData.startDate,
       endDate: formData.endDate,
-      assignedAuditors: [],
+      assignedAuditors: formData.responsibleAuditor
+        ? [formData.responsibleAuditor, ...formData.teamMembers.filter((m) => m !== formData.responsibleAuditor)]
+        : formData.teamMembers,
       objectives: formData.objectives.split("\n").filter((o) => o.trim()),
       scope: formData.scope,
       criteria: formData.criteria,
@@ -169,6 +224,7 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
       description: "",
       department: "",
       priority: "medium",
+      status: "planning",
       startDate: "",
       endDate: "",
       estimatedHours: "",
@@ -176,7 +232,10 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
       scope: "",
       criteria: "",
       annualPlanId: "",
+      responsibleAuditor: "",
+      teamMembers: [],
     })
+    setVacationWarning(null)
   }
 
   const getStatusColor = (status: string) => {
@@ -449,186 +508,295 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
               أدخل تفاصيل المهمة التدقيقية وفقاً لمعايير IIA
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="annualPlan" className="text-slate-300">
-                الخطة السنوية <span className="text-cyan-400">*</span>
-              </Label>
-              <Select
-                value={formData.annualPlanId}
-                onValueChange={(value) => setFormData({ ...formData, annualPlanId: value })}
-              >
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue placeholder="اختر الخطة السنوية" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                  {annualPlans.length > 0 ? (
-                    annualPlans.map((plan) => (
-                      <SelectItem key={plan.id} value={plan.id.toString()}>
-                        {plan.title} ({plan.year})
+          <div className="space-y-6 mt-4">
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-white border-b border-slate-700 pb-2">المعلومات الأساسية</h4>
+              <div className="space-y-2">
+                <Label htmlFor="annualPlan" className="text-slate-300">
+                  الخطة السنوية <span className="text-cyan-400">*</span>
+                </Label>
+                <Select
+                  value={formData.annualPlanId}
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, annualPlanId: value })
+                    setVacationWarning(null)
+                  }}
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                    <SelectValue placeholder="اختر الخطة السنوية" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                    {annualPlans.length > 0 ? (
+                      annualPlans.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id.toString()}>
+                          {plan.title} ({plan.year})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        لا توجد خطط سنوية متاحة
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      لا توجد خطط سنوية متاحة
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-slate-500">اربط هذه المهمة بخطة سنوية محددة</p>
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">اربط هذه المهمة بخطة سنوية محددة</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-slate-300">
+                  اسم المهمة <span className="text-cyan-400">*</span>
+                </Label>
+                <Input
+                  id="title"
+                  placeholder="تدقيق نظام المشتريات"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-slate-300">
+                  الهدف من المهمة <span className="text-cyan-400">*</span>
+                </Label>
+                <Textarea
+                  id="description"
+                  placeholder="وصف مختصر للهدف من المهمة التدقيقية..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white min-h-20"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="department" className="text-slate-300">
+                    الإدارة الخاضعة للتدقيق <span className="text-cyan-400">*</span>
+                  </Label>
+                  <Select
+                    value={formData.department}
+                    onValueChange={(value) => setFormData({ ...formData, department: value })}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder="اختر الإدارة" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                      <SelectItem value="المالية">المالية</SelectItem>
+                      <SelectItem value="المشتريات">المشتريات</SelectItem>
+                      <SelectItem value="تقنية المعلومات">تقنية المعلومات</SelectItem>
+                      <SelectItem value="الموارد البشرية">الموارد البشرية</SelectItem>
+                      <SelectItem value="العمليات">العمليات</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priority" className="text-slate-300">
+                    الأولوية
+                  </Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder="اختر الأولوية" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                      <SelectItem value="critical">حرج</SelectItem>
+                      <SelectItem value="high">عالي</SelectItem>
+                      <SelectItem value="medium">متوسط</SelectItem>
+                      <SelectItem value="low">منخفض</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-slate-300">
-                عنوان المهمة
-              </Label>
-              <Input
-                id="title"
-                placeholder="تدقيق نظام المشتريات"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-slate-300">
-                الوصف
-              </Label>
-              <Textarea
-                id="description"
-                placeholder="وصف شامل للمهمة التدقيقية..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white min-h-20"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-white border-b border-slate-700 pb-2">الجدولة والحالة</h4>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startDate" className="text-slate-300">
+                    تاريخ البدء <span className="text-cyan-400">*</span>
+                  </Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => handleDateChange("startDate", e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endDate" className="text-slate-300">
+                    تاريخ الانتهاء <span className="text-cyan-400">*</span>
+                  </Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => handleDateChange("endDate", e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="estimatedHours" className="text-slate-300">
+                    الساعات المقدرة
+                  </Label>
+                  <Input
+                    id="estimatedHours"
+                    type="number"
+                    placeholder="120"
+                    value={formData.estimatedHours}
+                    onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
+                </div>
+              </div>
+
+              {vacationWarning && (
+                <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg flex items-start gap-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-orange-300 font-medium">تحذير</p>
+                    <p className="text-xs text-orange-200">{vacationWarning}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Label htmlFor="department" className="text-slate-300">
-                  الإدارة
+                <Label htmlFor="status" className="text-slate-300">
+                  حالة المهمة <span className="text-cyan-400">*</span>
                 </Label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(value) => setFormData({ ...formData, department: value })}
-                >
+                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
                   <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                    <SelectValue placeholder="اختر الإدارة" />
+                    <SelectValue placeholder="اختر الحالة" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                    <SelectItem value="المالية">المالية</SelectItem>
-                    <SelectItem value="المشتريات">المشتريات</SelectItem>
-                    <SelectItem value="تقنية المعلومات">تقنية المعلومات</SelectItem>
-                    <SelectItem value="الموارد البشرية">الموارد البشرية</SelectItem>
-                    <SelectItem value="العمليات">العمليات</SelectItem>
+                    <SelectItem value="planning">مجدولة</SelectItem>
+                    <SelectItem value="fieldwork">جارية</SelectItem>
+                    <SelectItem value="reporting">تحت المراجعة</SelectItem>
+                    <SelectItem value="completed">منتهية</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-white border-b border-slate-700 pb-2">تعيين الفريق</h4>
               <div className="space-y-2">
-                <Label htmlFor="priority" className="text-slate-300">
-                  الأولوية
+                <Label htmlFor="responsibleAuditor" className="text-slate-300">
+                  المدقق المسؤول <span className="text-cyan-400">*</span>
                 </Label>
                 <Select
-                  value={formData.priority}
-                  onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                  value={formData.responsibleAuditor}
+                  onValueChange={(value) => setFormData({ ...formData, responsibleAuditor: value })}
                 >
                   <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                    <SelectValue placeholder="اختر الأولوية" />
+                    <SelectValue placeholder="اختر المدقق المسؤول" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                    <SelectItem value="critical">حرج</SelectItem>
-                    <SelectItem value="high">عالي</SelectItem>
-                    <SelectItem value="medium">متوسط</SelectItem>
-                    <SelectItem value="low">منخفض</SelectItem>
+                    {availableAuditors.map((auditor) => (
+                      <SelectItem key={auditor} value={auditor}>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          {auditor}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-slate-500">المدقق الرئيسي المسؤول عن المهمة</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-slate-300">فريق المدققين المشاركين</Label>
+                <div className="space-y-2 max-h-48 overflow-y-auto p-3 bg-slate-800/50 rounded-lg">
+                  {availableAuditors
+                    .filter((auditor) => auditor !== formData.responsibleAuditor)
+                    .map((auditor) => (
+                      <div key={auditor} className="flex items-center gap-3 p-2 bg-slate-800 rounded">
+                        <Checkbox
+                          id={`auditor-${auditor}`}
+                          checked={formData.teamMembers.includes(auditor)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({ ...formData, teamMembers: [...formData.teamMembers, auditor] })
+                            } else {
+                              setFormData({
+                                ...formData,
+                                teamMembers: formData.teamMembers.filter((m) => m !== auditor),
+                              })
+                            }
+                          }}
+                          className="border-slate-600"
+                        />
+                        <Label htmlFor={`auditor-${auditor}`} className="text-white cursor-pointer flex-1">
+                          {auditor}
+                        </Label>
+                      </div>
+                    ))}
+                </div>
+                <p className="text-xs text-slate-500">
+                  تم اختيار {formData.teamMembers.length} مدقق مشارك
+                  {formData.responsibleAuditor && " + المدقق المسؤول"}
+                </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-white border-b border-slate-700 pb-2">تفاصيل التدقيق</h4>
               <div className="space-y-2">
-                <Label htmlFor="startDate" className="text-slate-300">
-                  تاريخ البدء
+                <Label htmlFor="objectives" className="text-slate-300">
+                  الأهداف (سطر لكل هدف)
                 </Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white"
+                <Textarea
+                  id="objectives"
+                  placeholder="تقييم فعالية الضوابط&#10;التحقق من الامتثال للسياسات&#10;تقييم كفاءة العمليات"
+                  value={formData.objectives}
+                  onChange={(e) => setFormData({ ...formData, objectives: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white min-h-24"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endDate" className="text-slate-300">
-                  تاريخ الانتهاء
+                <Label htmlFor="scope" className="text-slate-300">
+                  النطاق
                 </Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white"
+                <Textarea
+                  id="scope"
+                  placeholder="جميع عمليات المشتريات للربع الأخير من 2024"
+                  value={formData.scope}
+                  onChange={(e) => setFormData({ ...formData, scope: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white min-h-20"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="estimatedHours" className="text-slate-300">
-                  الساعات المقدرة
+                <Label htmlFor="criteria" className="text-slate-300">
+                  المعايير
                 </Label>
-                <Input
-                  id="estimatedHours"
-                  type="number"
-                  placeholder="120"
-                  value={formData.estimatedHours}
-                  onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white"
+                <Textarea
+                  id="criteria"
+                  placeholder="سياسات المشتريات الداخلية، معايير ISO 9001"
+                  value={formData.criteria}
+                  onChange={(e) => setFormData({ ...formData, criteria: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white min-h-20"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="objectives" className="text-slate-300">
-                الأهداف (سطر لكل هدف)
-              </Label>
-              <Textarea
-                id="objectives"
-                placeholder="تقييم فعالية الضوابط&#10;التحقق من الامتثال للسياسات&#10;تقييم كفاءة العمليات"
-                value={formData.objectives}
-                onChange={(e) => setFormData({ ...formData, objectives: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white min-h-24"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="scope" className="text-slate-300">
-                النطاق
-              </Label>
-              <Textarea
-                id="scope"
-                placeholder="جميع عمليات المشتريات للربع الأخير من 2024"
-                value={formData.scope}
-                onChange={(e) => setFormData({ ...formData, scope: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white min-h-20"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="criteria" className="text-slate-300">
-                المعايير
-              </Label>
-              <Textarea
-                id="criteria"
-                placeholder="سياسات المشتريات الداخلية، معايير ISO 9001"
-                value={formData.criteria}
-                onChange={(e) => setFormData({ ...formData, criteria: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white min-h-20"
-              />
             </div>
           </div>
           <div className="flex gap-3 mt-6">
             <Button
               onClick={handleCreateEngagement}
-              className="flex-1 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700"
+              disabled={!!vacationWarning}
+              className="flex-1 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               إنشاء المهمة
             </Button>
             <Button
               variant="outline"
-              onClick={() => setShowCreateDialog(false)}
+              onClick={() => {
+                setShowCreateDialog(false)
+                setVacationWarning(null)
+              }}
               className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800 bg-transparent"
             >
               إلغاء
