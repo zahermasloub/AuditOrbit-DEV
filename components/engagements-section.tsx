@@ -385,51 +385,19 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
         </Card>
       </div>
 
-      {/* Engagements Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-800 border-b border-slate-700">
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">المهمة</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الإدارة</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الحالة</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الأولوية</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الفترة</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الفريق</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الساعات</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">التقدم</th>
-                <th className="text-center px-6 py-4 text-sm font-semibold text-slate-300">الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {engagements.map((engagement) => (
-                <tr key={engagement.id} className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-white font-medium">{engagement.title}</p>
-                      <p className="text-sm text-slate-400 mt-1">{engagement.description}</p>
-                      {engagement.annualPlanTitle && (
-                        <Badge
-                          variant="outline"
-                          className="border-cyan-500/30 text-cyan-300 bg-cyan-500/10 text-xs mt-2"
-                        >
-                          <Calendar className="h-3 w-3 ml-1" />
-                          {engagement.annualPlanTitle}
-                        </Badge>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-slate-400" />
-                      <span className="text-white">{engagement.department}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
+      {/* Engagements List */}
+      <div className="space-y-4">
+        {engagements.map((engagement) => (
+          <Card
+            key={engagement.id}
+            className="bg-slate-900 border-slate-800 hover:border-indigo-500/50 transition-colors"
+          >
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="text-xl font-semibold text-white">{engagement.title}</h4>
                     <Badge className={getStatusColor(engagement.status)}>{getStatusLabel(engagement.status)}</Badge>
-                  </td>
-                  <td className="px-6 py-4">
                     <Badge
                       variant={getPriorityColor(engagement.priority)}
                       className={
@@ -442,61 +410,92 @@ export function EngagementsSection({ annualPlans = [] }: EngagementsSectionProps
                     >
                       {getPriorityLabel(engagement.priority)}
                     </Badge>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm">
-                      <p className="text-slate-300">{engagement.startDate}</p>
-                      <p className="text-slate-400">إلى</p>
-                      <p className="text-slate-300">{engagement.endDate}</p>
+                  </div>
+                  <p className="text-slate-400 text-sm mb-3">{engagement.description}</p>
+                  {engagement.annualPlanTitle && (
+                    <div className="mb-3">
+                      <Badge variant="outline" className="border-cyan-500/30 text-cyan-300 bg-cyan-500/10">
+                        <Calendar className="h-3 w-3 ml-1" />
+                        {engagement.annualPlanTitle}
+                      </Badge>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-slate-400" />
-                      <span className="text-white">{engagement.assignedAuditors.length}</span>
-                      <span className="text-slate-400 text-sm">مدقق</span>
+                  )}
+                  <div className="flex items-center gap-4 text-sm text-slate-400">
+                    <div className="flex items-center gap-1">
+                      <Building2 className="h-4 w-4" />
+                      <span>{engagement.department}</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-center">
-                      <p className="text-white font-semibold">
-                        {engagement.actualHours} / {engagement.estimatedHours}
-                      </p>
-                      <p className="text-xs text-slate-400">فعلي / مقدر</p>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      <span>{engagement.assignedAuditors.length} مدقق</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="space-y-2 min-w-32">
-                      <Progress value={engagement.progress} className="h-2" />
-                      <p className="text-sm text-center text-white font-medium">{engagement.progress}%</p>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {engagement.startDate} - {engagement.endDate}
+                      </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedEngagement(engagement)
-                          setShowViewDialog(true)
-                        }}
-                        className="text-slate-400 hover:text-white h-8 w-8"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white h-8 w-8">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-400 h-8 w-8">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setSelectedEngagement(engagement)
+                      setShowViewDialog(true)
+                    }}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-400">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="p-3 bg-slate-800/50 rounded-lg">
+                  <p className="text-xs text-slate-400 mb-1">الساعات</p>
+                  <p className="text-lg font-semibold text-white">
+                    {engagement.actualHours} / {engagement.estimatedHours}
+                  </p>
+                </div>
+                <div className="p-3 bg-slate-800/50 rounded-lg">
+                  <p className="text-xs text-slate-400 mb-1">مستوى المخاطر</p>
+                  <Badge
+                    variant={engagement.riskLevel === "high" ? "destructive" : "secondary"}
+                    className={
+                      engagement.riskLevel === "medium"
+                        ? "bg-orange-500/20 text-orange-300 border-orange-500/30"
+                        : engagement.riskLevel === "low"
+                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                          : ""
+                    }
+                  >
+                    {engagement.riskLevel === "high" ? "عالي" : engagement.riskLevel === "medium" ? "متوسط" : "منخفض"}
+                  </Badge>
+                </div>
+                <div className="p-3 bg-slate-800/50 rounded-lg">
+                  <p className="text-xs text-slate-400 mb-1">الأهداف</p>
+                  <p className="text-lg font-semibold text-white">{engagement.objectives.length}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-400">التقدم</span>
+                  <span className="text-white font-medium">{engagement.progress}%</span>
+                </div>
+                <Progress value={engagement.progress} className="h-2" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Create Engagement Dialog */}
