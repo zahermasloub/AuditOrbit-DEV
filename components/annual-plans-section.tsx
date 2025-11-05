@@ -284,84 +284,109 @@ export function AnnualPlansSection() {
         </Card>
       </div>
 
-      {/* Plans List */}
-      <div className="space-y-4">
-        {plans.map((plan) => (
-          <Card key={plan.id} className="bg-slate-900 border-slate-800 hover:border-indigo-500/50 transition-colors">
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h4 className="text-xl font-semibold text-white">{plan.title}</h4>
+      {/* Plans Table */}
+      <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-800 border-b border-slate-700">
+                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">العنوان</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">السنة</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الفترة</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الحالة</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">المهام</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الساعات</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">التقدم</th>
+                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">الإدارات</th>
+                <th className="text-center px-6 py-4 text-sm font-semibold text-slate-300">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {plans.map((plan) => (
+                <tr key={plan.id} className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="text-white font-medium">{plan.title}</p>
+                      <p className="text-sm text-slate-400 mt-1">{plan.description}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-white font-medium">{plan.year}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm">
+                      <p className="text-slate-300">{plan.startDate}</p>
+                      <p className="text-slate-400">إلى</p>
+                      <p className="text-slate-300">{plan.endDate}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
                     <Badge className={getStatusColor(plan.status)}>{getStatusLabel(plan.status)}</Badge>
-                  </div>
-                  <p className="text-slate-400 text-sm mb-3">{plan.description}</p>
-                  {plan.departments.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {plan.departments.map((dept, idx) => (
-                        <Badge key={idx} variant="outline" className="border-slate-600 text-slate-300">
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-center">
+                      <p className="text-white font-semibold">
+                        {plan.completedEngagements} / {plan.totalEngagements}
+                      </p>
+                      <p className="text-xs text-slate-400">مكتمل / إجمالي</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-center">
+                      <p className="text-white font-semibold">
+                        {plan.actualHours} / {plan.riskBasedHours}
+                      </p>
+                      <p className="text-xs text-slate-400">فعلي / مخطط</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="space-y-2 min-w-32">
+                      <Progress value={(plan.completedEngagements / plan.totalEngagements) * 100} className="h-2" />
+                      <p className="text-sm text-center text-white font-medium">
+                        {Math.round((plan.completedEngagements / plan.totalEngagements) * 100)}%
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-1 max-w-48">
+                      {plan.departments.slice(0, 3).map((dept, idx) => (
+                        <Badge key={idx} variant="outline" className="border-slate-600 text-slate-300 text-xs">
                           {dept}
                         </Badge>
                       ))}
+                      {plan.departments.length > 3 && (
+                        <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">
+                          +{plan.departments.length - 3}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setSelectedPlan(plan)
-                      setShowViewDialog(true)
-                    }}
-                    className="text-slate-400 hover:text-white"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-400">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div className="p-3 bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-400 mb-1">المهام</p>
-                  <p className="text-lg font-semibold text-white">
-                    {plan.completedEngagements} / {plan.totalEngagements}
-                  </p>
-                </div>
-                <div className="p-3 bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-400 mb-1">الساعات</p>
-                  <p className="text-lg font-semibold text-white">
-                    {plan.actualHours} / {plan.riskBasedHours}
-                  </p>
-                </div>
-                <div className="p-3 bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-400 mb-1">معتمد من</p>
-                  <p className="text-lg font-semibold text-white">{plan.approvedBy || "-"}</p>
-                </div>
-                <div className="p-3 bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-400 mb-1">تاريخ الاعتماد</p>
-                  <p className="text-lg font-semibold text-white">{plan.approvedDate || "-"}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-400">نسبة الإنجاز</span>
-                  <span className="text-white font-medium">
-                    {Math.round((plan.completedEngagements / plan.totalEngagements) * 100)}%
-                  </span>
-                </div>
-                <Progress value={(plan.completedEngagements / plan.totalEngagements) * 100} className="h-2" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedPlan(plan)
+                          setShowViewDialog(true)
+                        }}
+                        className="text-slate-400 hover:text-white h-8 w-8"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white h-8 w-8">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-400 h-8 w-8">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Create Plan Dialog */}
